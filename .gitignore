@@ -29,6 +29,7 @@ ENV/
 *.json.bak
 reports/*.html
 reports/*.pdf
+data/
 
 # Testing
 .pytest_cache/
