@@ -99,3 +99,14 @@ class IncidentStore:
         # Write to file
         with open(self.incidents_file, 'w') as f:
             json.dump(data, f, indent=2)
+
+    def find_by_datadog_alert_id(self, alert_id: str) -> Optional[Incident]:
+        """
+        Find an incident by its Datadog alert ID.
+        Returns None if not found.
+        """
+        incidents = self.load_all()
+        for incident in incidents:
+            if incident.datadog_alert_id == alert_id:
+                return incident
+        return None
