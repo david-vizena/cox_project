@@ -1,0 +1,11 @@
+# Minimal requirements for AWS Lambda deployment
+# Only includes dependencies actually needed by the Lambda function
+
+# AWS SDK (already in Lambda runtime, but we include for local dev consistency)
+boto3>=1.28.0
+
+# Datadog API client
+datadog-api-client>=2.25.0
+
+# Environment variables
+python-dotenv>=1.0.0

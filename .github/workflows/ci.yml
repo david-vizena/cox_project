@@ -58,8 +58,15 @@ jobs:
         run: |
           mkdir -p package
           cp -r src lambda_function.py package/
-          pip install -r requirements.txt -t package/
-          cd package && zip -r ../function.zip . && cd ..
+          pip install -r lambda-requirements.txt -t package/ --quiet
+          # Remove unnecessary files to reduce package size
+          find package -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+          find package -type d -name "*.dist-info" -exec rm -rf {} + 2>/dev/null || true
+          find package -type d -name "tests" -exec rm -rf {} + 2>/dev/null || true
+          find package -type f -name "*.pyc" -delete 2>/dev/null || true
+          find package -type f -name "*.pyo" -delete 2>/dev/null || true
+          cd package && zip -r ../function.zip . -q && cd ..
+          echo "Package size: $(du -h ../function.zip | cut -f1)"
 
       - name: Deploy to Lambda
         run: |
