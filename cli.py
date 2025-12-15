@@ -1,13 +1,23 @@
+import os
 import click
 
 from src.services.incident_service import IncidentService
 from src.aws.datadog_client import DatadogClient
+from src.storage.json_store import IncidentStore
+from src.storage.dynamodb_store import DynamoDBStore
 
 
 def build_service() -> IncidentService:
-    """Create an IncidentService wired to the real Datadog client."""
+    """Create an IncidentService wired to Datadog + chosen storage backend."""
+    use_dynamodb = os.getenv("USE_DYNAMODB", "false").lower() == "true"
+
+    if use_dynamodb:
+        store = DynamoDBStore()
+    else:
+        store = IncidentStore()
+
     datadog_client = DatadogClient()
-    service = IncidentService(datadog_client=datadog_client)
+    service = IncidentService(datadog_client=datadog_client, store=store)
     return service
 
 

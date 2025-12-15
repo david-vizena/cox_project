@@ -1,6 +1,14 @@
+import sys
+from pathlib import Path
+
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
+
 from src.services.incident_service import IncidentService
-# from src.aws.mock_datadog_client import MockDatadogClient
 from src.aws.datadog_client import DatadogClient
+
+
+# from src.aws.mock_datadog_client import MockDatadogClient
 
 # Create mock Datadog client
 # Commented out when switched to live Datadog Data

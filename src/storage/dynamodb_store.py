@@ -89,6 +89,9 @@ class DynamoDBStore:
         try:
             item = incident.to_dict()
             item = {k: v if v is not None else "" for k, v in item.items()}
+            # Ensure datadog_alert_id is always a string (GSI schema expects string type)
+            if "datadog_alert_id" in item and item["datadog_alert_id"]:
+                item["datadog_alert_id"] = str(item["datadog_alert_id"])
             self.table.put_item(Item=item)
         except ClientError as e:
             raise Exception(f"Error saving incident to DynamoDB: {e}")
@@ -146,10 +149,15 @@ class DynamoDBStore:
 
     def find_by_datadog_alert_id(self, alert_id: str) -> Optional[Incident]:
         """Find an incident by its Datadog alert ID using GSI."""
+        if not alert_id:
+            return None
         try:
+            # Ensure alert_id is a string (DynamoDB schema expects string type)
+            alert_id_str = str(alert_id)
             response = self.table.query(
                 IndexName="datadog-alert-id-index",
-                KeyConditionExpression=Key("datadog_alert_id").eq(alert_id),
+                KeyConditionExpression=Key(
+                    "datadog_alert_id").eq(alert_id_str),
             )
             if response.get("Items"):
                 item = response["Items"][0]

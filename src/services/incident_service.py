@@ -31,8 +31,11 @@ class IncidentService:
         new_incidents: List[Incident] = []
 
         for alert in alerts:
+            # Ensure alert ID is a string (DynamoDB requires consistent types)
+            alert_id = str(alert["id"])
+
             # Skip if we already have an incident for this Datadog alert
-            existing = self.store.find_by_datadog_alert_id(alert["id"])
+            existing = self.store.find_by_datadog_alert_id(alert_id)
             if existing:
                 continue
 
@@ -58,12 +61,16 @@ class IncidentService:
         severity = severity_map.get(alert_state, 4)  # Default to 4 if unknown
 
         # Create incident
+        # Ensure datadog_alert_id is always a string for DynamoDB consistency
+        alert_id = str(alert.get("id")) if alert.get(
+            "id") is not None else None
+
         incident = Incident(
             title=alert.get("name", "Unknown Alert"),
             description=alert.get("message", "No description"),
             severity=severity,
             source="datadog",
-            datadog_alert_id=alert.get("id"),
+            datadog_alert_id=alert_id,
         )
 
         # Add tags from Datadog if available
