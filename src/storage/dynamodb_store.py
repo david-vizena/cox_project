@@ -1,8 +1,11 @@
+import os
+
 import boto3
+from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
 from typing import List, Optional
+
 from src.models.incident import Incident
-import os
 
 
 class DynamoDBStore:
@@ -19,7 +22,8 @@ class DynamoDBStore:
             table_name: Name of the DynamoDB table (defaults to env var or 'incidents')
             region: AWS region (defaults to us-east-1)
         """
-        self.table_name = table_name or os.getenv("DYNAMODB_TABLE_NAME", "incidents")
+        self.table_name = table_name or os.getenv(
+            "DYNAMODB_TABLE_NAME", "incidents")
         self.region = region
 
         # Initialize DynamoDB client
@@ -42,37 +46,35 @@ class DynamoDBStore:
     def _create_table(self):
         """Create the DynamoDB table with proper schema."""
         try:
+            # Note: AttributeDefinitions must be declared at the *table* level,
+            # not inside each GlobalSecondaryIndex definition.
             self.dynamodb.create_table(
                 TableName=self.table_name,
                 KeySchema=[
-                    {"AttributeName": "id", "KeyType": "HASH"}
+                    {"AttributeName": "id", "KeyType": "HASH"},
                 ],
                 AttributeDefinitions=[
-                    {"AttributeName": "id", "AttributeType": "S"}
+                    {"AttributeName": "id", "AttributeType": "S"},
+                    {"AttributeName": "status", "AttributeType": "S"},
+                    {"AttributeName": "datadog_alert_id", "AttributeType": "S"},
                 ],
                 BillingMode="PAY_PER_REQUEST",
                 GlobalSecondaryIndexes=[
                     {
                         "IndexName": "status-index",
                         "KeySchema": [
-                            {"AttributeName": "status", "KeyType": "HASH"}
+                            {"AttributeName": "status", "KeyType": "HASH"},
                         ],
-                        "AttributeDefinitions": [
-                            {"AttributeName": "status", "AttributeType": "S"}
-                        ],
-                        "Projection": {"ProjectionType": "ALL"}
+                        "Projection": {"ProjectionType": "ALL"},
                     },
                     {
                         "IndexName": "datadog-alert-id-index",
                         "KeySchema": [
-                            {"AttributeName": "datadog_alert_id", "KeyType": "HASH"}
+                            {"AttributeName": "datadog_alert_id", "KeyType": "HASH"},
                         ],
-                        "AttributeDefinitions": [
-                            {"AttributeName": "datadog_alert_id", "AttributeType": "S"}
-                        ],
-                        "Projection": {"ProjectionType": "ALL"}
-                    }
-                ]
+                        "Projection": {"ProjectionType": "ALL"},
+                    },
+                ],
             )
             self.table.meta.client.get_waiter("table_exists").wait(
                 TableName=self.table_name
@@ -131,8 +133,7 @@ class DynamoDBStore:
         try:
             response = self.table.query(
                 IndexName="status-index",
-                KeyConditionExpression="status = :status",
-                ExpressionAttributeValues={":status": status}
+                KeyConditionExpression=Key("status").eq(status),
             )
             incidents = []
             for item in response.get("Items", []):
@@ -148,8 +149,7 @@ class DynamoDBStore:
         try:
             response = self.table.query(
                 IndexName="datadog-alert-id-index",
-                KeyConditionExpression="datadog_alert_id = :alert_id",
-                ExpressionAttributeValues={":alert_id": alert_id}
+                KeyConditionExpression=Key("datadog_alert_id").eq(alert_id),
             )
             if response.get("Items"):
                 item = response["Items"][0]
