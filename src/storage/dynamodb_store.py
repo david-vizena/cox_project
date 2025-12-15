@@ -77,7 +77,7 @@ class DynamoDBStore:
             self.table.meta.client.get_waiter("table_exists").wait(
                 TableName=self.table_name
             )
-            print(f"✅ Created DynamoDB table: {self.table_name}")
+            print(f"[OK] Created DynamoDB table: {self.table_name}")
         except ClientError as e:
             if e.response["Error"]["Code"] != "ResourceInUseException":
                 raise

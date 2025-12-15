@@ -19,22 +19,22 @@ print(f"  Status: {incident1.status}")
 
 # Save it
 store.save(incident1)
-print("\n✅ Incident saved!")
+print("\n[OK] Incident saved!")
 
 # Load it back
 all_incidents = store.load_all()
-print(f"\n✅ Loaded {len(all_incidents)} incident(s)")
+print(f"\n[OK] Loaded {len(all_incidents)} incident(s)")
 
 # Find it by ID
 found = store.find_by_id(incident1.id)
 if found:
-    print(f"\n✅ Found incident: {found.title}")
+    print(f"\n[OK] Found incident: {found.title}")
 
 # Test acknowledging it
 incident1.acknowledge("David")
 store.save(incident1)
-print(f"\n✅ Incident acknowledged by: {incident1.assignee}")
+print(f"\n[OK] Incident acknowledged by: {incident1.assignee}")
 
 # Test finding by status
 active = store.find_by_status("acknowledged")
-print(f"\n✅ Found {len(active)} acknowledged incident(s)")
+print(f"\n[OK] Found {len(active)} acknowledged incident(s)")
