@@ -4,7 +4,6 @@ from src.aws.datadog_client import DatadogClient
 
 # Create mock Datadog client
 # Commented out when switched to live Datadog Data
-
 # mock_client = MockDatadogClient()
 
 # Create live Datadog client
